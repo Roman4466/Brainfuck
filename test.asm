@@ -25,6 +25,7 @@
                       xor  cx, cx
                       xor  bx, bx
     main_program_loop:
+    ; If so, we are done
                       cmp  cx, [count]
                       jae  exit                  ; If CX is greater or equal to [count], we are done
 
@@ -35,6 +36,10 @@
                       pop  bx
                       inc  cx                    ; Increment the program counter
 
+                      xor  dh, dh
+                      mov  dx, ax              ; Load the next character to print
+                      mov  ah, 02h               ; DOS function: Print character in DL
+                      int  21h
     ; Compare the command and jump to the corresponding routine
 
                       cmp  ax, '+'
@@ -55,13 +60,13 @@
     ; ;  je   end_loop
     ;                   jmp  main_program_loop
 
-    increment:
+    increment:        
                       mov  ax, [memory + bx]
                       inc  ax
                       mov  [memory + bx], ax
                       jmp  main_program_loop
 
-    decrement:
+    decrement:        
                       mov  ax, [memory + bx]
                       dec  ax
                       mov  [memory + bx], ax
@@ -74,11 +79,15 @@
     ;                   mov  [memory + bx], ax
     ;                   jmp  main_program_loop
 
-    output:
-                    xor dh, dh
-                    mov dx, [program + bx]    ; Load the next character to print
-                    mov ah, 02h               ; DOS function: Print character in DL
-                    int 21h                   ; Call DOS interrupt
+    output:           
+                      xor  dh, dh
+                      mov  dx, '2'               ; Load the next character to print
+                      mov  ah, 02h               ; DOS function: Print character in DL
+                      int  21h
+                      xor  dh, dh
+                      mov  dx, [memory + bx]     ; Load the next character to print
+                      mov  ah, 02h               ; DOS function: Print character in DL
+                      int  21h                   ; Call DOS interrupt
                       jmp  main_program_loop
 
     ; shift_left:
