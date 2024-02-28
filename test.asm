@@ -1,46 +1,95 @@
 .model small
 .stack 100h
 .data
-    char    db '?'             ; Placeholder for input character
-    ; memory  db 10000 dup(0)    ; Brainfuck memory tape should be bytes
+    memory  dw 10000 dup(0)    ; Brainfuck memory tape should be bytes
     program dw 10000 dup(0)    ; Placeholder for Brainfuck program code
     count   dw 0               ; Counter for the number of characters read
 
 .code
-    start:               
-                         mov  ax, @data
-                         mov  ds, ax
-                         xor  bx, bx                  ; Offset index for the program data
+    start:            
+                      mov  ax, @data
+                      mov  ds, ax
 
-    read_character:      
-                         mov  ah, 01h                 ; DOS function: Read character from standard input
-                         int  21h                     ; Call DOS interrupt
-                         cmp  al, 1Ah                 ; Check if input is Ctrl+Z (EOF)
-                         je   done_reading
-                         xor  ah, ah
-                         mov  [program + bx], ax
-                         inc  bx                      ; Move to the next position in the program array
-                         inc  [count]                 ; Increment the character count
-                         cmp  bx, 10000               ; Check if we've reached the end of the program buffer
-                         jb   read_character          ; If not, read next character
+    read_character:   
+                      mov  ah, 01h               ; DOS function: Read character from standard input
+                      int  21h                   ; Call DOS interrupt
+                      cmp  al, 1Ah               ; Check if input is Ctrl+Z (EOF)
+                      je   done_reading
+                      mov  [program + bx], ax
+                      inc  bx                    ; Move to the next position in the program array
+                      cmp  bx, 10000             ; Check if we've reached the end of the program buffer
+                      jb   read_character        ; If not, read next character
 
-    done_reading:        
-                         xor  bx, bx                  ; Reset offset index for output
+    done_reading:     
+                      mov  [count], bx
+                      xor  cx, cx
+                      xor  bx, bx
+    main_program_loop:
+                      cmp  cx, [count]
+                      jae  exit                  ; If CX is greater or equal to [count], we are done
 
-    print_character:     
-                         mov  cx, [count]             ; Load the number of characters to print into CX
+    ; Fetch the current command from the program
+                      push bx
+                      mov  bx, cx
+                      mov  ax, [program + bx]    ; DL is used because it's the lower byte of DX
+                      pop  bx
+                      inc  cx                    ; Increment the program counter
 
-    print_next_character:
-                         xor  dh, dh
-                         mov  dx, [program + bx]      ; Load the next character to print
-                         mov  ah, 02h                 ; DOS function: Print character in DL
-                         int  21h                     ; Call DOS interrupt
+    ; Compare the command and jump to the corresponding routine
 
-                         inc  bx                      ; Decrement the count
-                         loop print_next_character    ; If count is not zero, print the next character
+                      cmp  ax, '+'
+                      je   increment
+                      cmp  ax, '-'
+                      je   decrement
+                      cmp  ax, '.'
+                      je   output
+    ;                   cmp  ax, ','
+    ;                   je   input
+    ;                   cmp  ax, '>'
+    ;                   je   shift_right
+    ;                   cmp  ax, '<'
+    ;                   je   shift_left
+    ; ;  cmp  dl, '['
+    ; ;  je   begin_loop
+    ; ;  cmp  dl, ']'
+    ; ;  je   end_loop
+    ;                   jmp  main_program_loop
+
+    increment:
+                      mov  ax, [memory + bx]
+                      inc  ax
+                      mov  [memory + bx], ax
+                      jmp  main_program_loop
+
+    decrement:
+                      mov  ax, [memory + bx]
+                      dec  ax
+                      mov  [memory + bx], ax
+                      jmp  main_program_loop
 
 
-    done:                
-                         mov  ax, 4C00h               ; Terminate the program
-                         int  21h
+    ; input:
+    ;                   mov  ah, 01h               ; DOS function: Read character from standard input
+    ;                   int  21h                   ; Call DOS interrupt
+    ;                   mov  [memory + bx], ax
+    ;                   jmp  main_program_loop
+
+    output:
+                    xor dh, dh
+                    mov dx, [program + bx]    ; Load the next character to print
+                    mov ah, 02h               ; DOS function: Print character in DL
+                    int 21h                   ; Call DOS interrupt
+                      jmp  main_program_loop
+
+    ; shift_left:
+    ;                   dec  bx
+    ;                   jmp  main_program_loop
+
+    ; shift_right:
+    ;                   inc  bx
+    ;                   jmp  main_program_loop
+
+    exit:             
+                      mov  ax, 4C00h             ; Terminate the program
+                      int  21h
 end start
