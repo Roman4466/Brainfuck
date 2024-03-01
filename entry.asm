@@ -36,21 +36,21 @@
                       pop  bx
                       inc  cl                    ; Increment the program counter
 
-                      mov  ah, 02h               ; DOS function: Print character in DL
-                      int  21h
+                    ;   mov  ah, 02h               ; DOS function: Print character in DL
+                    ;   int  21h
     ; Compare the command and jump to the corresponding routine
 
-                      cmp  al, '+'
+                      cmp  dl, '+'
                       je   increment
-                      cmp  al, '-'
+                      cmp  dl, '-'
                       je   decrement
-                      cmp  al, '.'
+                      cmp  dl, '.'
                       je   output
-                      cmp  al, ','
+                      cmp  dl, ','
                       je   input
-                      cmp  al, '>'
+                      cmp  dl, '>'
                       je   shift_right
-                      cmp  al, '<'
+                      cmp  dl, '<'
                       je   shift_left
     ;  cmp  dl, '['
     ;  je   begin_loop
