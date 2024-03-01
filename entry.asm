@@ -3,7 +3,7 @@
 .data
     memory  db 10000 dup(0)    ; Brainfuck memory tape should be bytes
     program db 10000 dup(0)    ; Placeholder for Brainfuck program code
-    count   dw 0               ; Counter for the number of characters read
+    count   db 0               ; Counter for the number of characters read
 
 .code
     start:            
@@ -16,17 +16,17 @@
                       cmp  al, 1Ah               ; Check if input is Ctrl+Z (EOF)
                       je   done_reading
                       mov  [program + bx], al
-                      inc  bx                    ; Move to the next position in the program array
+                      inc  bl                    ; Move to the next position in the program array
                       cmp  bx, 10000             ; Check if we've reached the end of the program buffer
                       jb   read_character        ; If not, read next character
 
     done_reading:     
-                      mov  [count], bx
+                      mov  [count], bl
                       xor  cx, cx
                       xor  bx, bx
     main_program_loop:
     ; If so, we are done
-                      cmp  cx, [count]
+                      cmp  cl, [count]
                       jae  exit                  ; If CX is greater or equal to [count], we are done
 
     ; Fetch the current command from the program
