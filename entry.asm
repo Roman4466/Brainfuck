@@ -1,9 +1,6 @@
-.model small
-.stack 100h
-.data
-    memory  dw 10000 dup(0)    ; Brainfuck memory tape should be bytes
-    program db 10000 dup(0)    ; Placeholder for Brainfuck program code
-    count   dw 0               ; Counter for the number of characters read
+.model tiny
+.code
+         org 0100h    ; Counter for the number of characters read
 
 .code
     start:            
@@ -74,7 +71,7 @@
     input:            
                       mov  ah, 01h               ; DOS function: Read character from standard input
                       int  21h                   ; Call DOS interrupt
-                    ;   xor ah, ah
+    ;   xor ah, ah
                       mov  [memory + bx], ax
                       jmp  main_program_loop
 
@@ -105,4 +102,9 @@
     exit:             
                       mov  ax, 4C00h             ; Terminate the program
                       int  21h
+
+                      
+    memory            dw   10000 dup(0)          ; Brainfuck memory tape should be bytes
+    program           db   10000 dup(0)          ; Placeholder for Brainfuck program code
+    count             dw   0
 end start
