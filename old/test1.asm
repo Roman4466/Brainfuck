@@ -1,66 +1,27 @@
 .model tiny
 .code
-                         org  0100h                   ; Counter for the number of characters read
+         org 0100h    ; Counter for the number of characters read
+
+.code
     start:               
-    ; Open the file named "test1.b"
-                         mov  ah, 3Dh                 ; DOS function: Open file
-                         lea  dx, filename            ; DS:DX points to the filename
-                         mov  al, 0                   ; Open file for reading
-                         int  21h                     ; Call DOS interrupt
-                         mov  bx, ax                  ; File handle is returned in AX
-
-    ; Read from the file
-                         mov  ah, 3Fh                 ; DOS function: Read from file
-                         lea  dx, program             ; DS:DX points to the program buffer
-                         mov  cx, 10000               ; Number of bytes to read
-                         int  21h                     ; Call DOS interrupt
-                         mov  [count], ax             ; AX contains the number of bytes read
-
-    ; Close the file
-                         mov  ah, 3Eh                 ; DOS function: Close file
-                         mov  bx, bx                  ; File handle is still in BX
-                         int  21h                     ; Call DOS interrupt
-
-    done_reading:        
-                         xor  bx, bx                  ; Reset offset index for output
+                         mov  dx, offset fileName     ; Address filename with ds:dx mov ah, @3Dh ; DOS Open-File function number mov al, Q ; ® = Read-only access
+                         mov  ah, 03ch
+                         xor  cx, cx
+                         int  21h
 
     print_character:     
                          mov  cx, [count]             ; Load the number of characters to print into CX
 
     print_next_character:
                          xor  dh, dh
-                         mov  dx, [program + bx]      ; Load the next character to print
+                         mov  dl, [program + bx]      ; Load the next character to print
                          mov  ah, 02h                 ; DOS function: Print character in DL
                          int  21h                     ; Call DOS interrupt
 
                          inc  bx                      ; Decrement the count
                          loop print_next_character    ; If count is not zero, print the next character
 
-
-    done:                
-                         mov  ax, 4C00h               ; Terminate the program
-                         int  21h
-
-    ; start:
-    ;                   mov  ah, 01h               ; DOS function: Read character from standard input
-    ;                   int  21h                   ; Call DOS interrupt
-    ;                   cmp  al, 1Ah               ; Check if input is Ctrl+Z (EOF)
-    ;                   je   done_reading
-    ;                   mov  [program + bx], al
-    ;                   inc  bx                    ; Move to the next position in the program array
-    ;                   cmp  bx, 10000             ; Check if we've reached the end of the program buffer
-    ;                   jb   start                 ; If not, read next character
-
-    ; done_reading:
-    ;                   mov  dx, '6'    ; Load the next character to print
-    ;                   mov  ah, 02h               ; DOS function: Print character in DL
-    ;                   int  21h
-    ;                   mov  ax, 4C01h             ; Terminate the program with an error code
-    ;                   int  21h
-    ;                   mov  [count], bx
-    ;                   xor  cx, cx
-    ;                   xor  bx, bx
-    ; main_program_loop:   
+    ; main_program_loop:
     ; ; If so, we are done
     ;                      cmp  cx, [count]
     ;                      jae  exit                    ; If CX is greater or equal to [count], we are done
@@ -94,58 +55,56 @@
     ;                      je   end_loop
     ;                      jmp  main_program_loop
 
-    ; increment:           
+    ; increment:
     ;                      mov  ax, [memory + bx]
     ;                      inc  ax
     ;                      mov  [memory + bx], ax
     ;                      jmp  main_program_loop
 
-    ; decrement:           
+    ; decrement:
     ;                      mov  ax, [memory + bx]
     ;                      dec  ax
     ;                      mov  [memory + bx], ax
     ;                      jmp  main_program_loop
 
 
-    ; input:               
+    ; input:
     ;                      mov  ah, 01h                 ; DOS function: Read character from standard input
     ;                      int  21h                     ; Call DOS interrupt
     ; ;   xor ah, ah
     ;                      mov  [memory + bx], ax
     ;                      jmp  main_program_loop
 
-    ; output:              
+    ; output:
     ;                      mov  dx, [memory + bx]       ; Load the next character to print
     ;                      mov  ah, 02h                 ; DOS function: Print character in DL
     ;                      int  21h                     ; Call DOS interrupt
     ;                      jmp  main_program_loop
 
-    ; shift_left:          
+    ; shift_left:
     ;                      dec  bx
     ;                      jmp  main_program_loop
 
-    ; shift_right:         
+    ; shift_right:
     ;                      inc  bx
     ;                      jmp  main_program_loop
 
-    ; begin_loop:          
+    ; begin_loop:
     ;                      push cx
     ;                      jmp  main_program_loop
     
-    ; end_loop:            
+    ; end_loop:
     ;                      cmp  [memory + bx], 0        ; Check if the current cell is zero
     ;                      jne  main_program_loop
     ;                      pop  cx
     ;                      jmp  main_program_loop
 
-    ; exit:                
-    ;                      mov  ax, 4C00h               ; Terminate the program
-    ;                      int  21h
-
-    filename             db   'test1.b', 0            ; Buffer to store the filename, needs to be parsed from command line
+    exit:                
+                         mov  ax, 4C00h               ; Terminate the program
+                         int  21h
 
     memory               dw   10000 dup(0)            ; Brainfuck memory tape should be bytes
-    program              dw   10000 dup(0)            ; Placeholder for Brainfuck program code
+    program              db   10000 dup(0)            ; Placeholder for Brainfuck program code
     count                dw   0
-
+    handle               dw   ?
 end start
