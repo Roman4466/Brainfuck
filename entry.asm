@@ -63,6 +63,7 @@
                                       je   begin_loop
                                       cmp  dl, ']'
                                       je   end_loop
+                                      jmp  main_program_loop
     find_end_and_finish:                                                        ;conter for nested loops
                                       cmp  cx, [count]
                                       jae  exit
@@ -71,10 +72,14 @@
                                       mov  dx, [program + bx]
                                       pop  bx
                                       inc  cx
+                                      push ax
+                                      mov ah, 02h
+                                      int 21h
+                                      pop ax
                                       cmp  dl, '['
                                       je   nested_loop_that_shouldnt_perform
                                       cmp  dl, ']'
-                                      jne  main_program_loop
+                                      je   end_of_loop
                                       jmp  find_end_and_finish
 
     nested_loop_that_shouldnt_perform:
@@ -83,7 +88,7 @@
 
     end_of_loop:                      
                                       cmp  ax, 0
-                                      jne  end_of_nested_loop
+                                      je  end_of_nested_loop
                                       jmp  main_program_loop
 
     end_of_nested_loop:               
@@ -130,11 +135,13 @@
     begin_loop:                       
                                       cmp  [memory + bx], 0
                                       je   loop_should_not_perform
+                                      dec  cx
                                       push cx
+                                      inc  cx
                                       jmp  main_program_loop
 
     loop_should_not_perform:                                                    ;conter for nested loops
-                                      xor  ax, ax
+                                      xor  al, al
                                       jmp  find_end_and_finish
     
     end_loop:                         
@@ -147,10 +154,5 @@
     memory                            dw   10000 dup(0)                         ; Brainfuck memory tape should be bytes
     program                           dw   10000 dup(0)                         ; Placeholder for Brainfuck program code
     count                             dw   0
-
+    nested_loop_counter               dw   0
 end start
-
-;description
-end PROC
-    
-end ENDP
