@@ -44,7 +44,7 @@
                                       jae  exit
                                       push bx
                                       mov  bx, cx
-                                      mov  dx, [program + bx]
+                                      mov  dl, [program + bx]
                                       pop  bx
                                       inc  cx
                                       cmp  dl, '+'
@@ -64,31 +64,35 @@
                                       cmp  dl, ']'
                                       je   end_loop
                                       jmp  main_program_loop
-    find_end_and_finish:                                                        ;conter for nested loops
+
+                                      
+    nested_loop_that_shouldnt_perform:
+                                      inc  ax
+    find_end_and_finish:              
                                       cmp  cx, [count]
                                       jae  exit
                                       push bx
                                       mov  bx, cx
-                                      mov  dx, [program + bx]
+                                      mov  dl, [program + bx]
                                       pop  bx
+                                    ;   push ax
+                                    ;   push dx
+                                    ;   mov  dx, 0
+                                    ;   mov  ah, 02h
+                                    ;   int  21h
+                                    ;   pop  dx
+                                    ;   pop  ax
                                       inc  cx
-                                      push ax
-                                      mov ah, 02h
-                                      int 21h
-                                      pop ax
                                       cmp  dl, '['
                                       je   nested_loop_that_shouldnt_perform
                                       cmp  dl, ']'
                                       je   end_of_loop
                                       jmp  find_end_and_finish
 
-    nested_loop_that_shouldnt_perform:
-                                      inc  ax
-                                      jmp  find_end_and_finish
-
     end_of_loop:                      
+                                      dec  ax
                                       cmp  ax, 0
-                                      je  end_of_nested_loop
+                                      jne  end_of_nested_loop                   ; pop the pointer to last [
                                       jmp  main_program_loop
 
     end_of_nested_loop:               
@@ -139,20 +143,22 @@
                                       push cx
                                       inc  cx
                                       jmp  main_program_loop
-
-    loop_should_not_perform:                                                    ;conter for nested loops
-                                      xor  al, al
-                                      jmp  find_end_and_finish
     
     end_loop:                         
                                       pop  cx
                                       push cx
                                       jmp  main_program_loop
 
+    loop_should_not_perform:          
+                                      dec  cx
+                                      push cx
+                                      inc  cx
+                                      mov  ax, 1
+                                      jmp  find_end_and_finish
+
     filename                          db   128 dup(0)                           ; Allocate space for the filename, adjust size as needed
 
     memory                            dw   10000 dup(0)                         ; Brainfuck memory tape should be bytes
-    program                           dw   10000 dup(0)                         ; Placeholder for Brainfuck program code
+    program                           db   10000 dup(0)                         ; Placeholder for Brainfuck program code
     count                             dw   0
-    nested_loop_counter               dw   0
 end start
