@@ -47,6 +47,12 @@
                                       mov  dl, [program + bx]
                                       pop  bx
                                       inc  cx
+    ;   push dx
+    ;   mov dx, [memory + bx]
+    ;   mov  ah, 02h
+    ;   int  21h
+    ;   pop  dx
+                                      cmp  ax, 0
                                       cmp  dl, '+'
                                       je   increment
                                       cmp  dl, '-'
@@ -69,20 +75,15 @@
     nested_loop_that_shouldnt_perform:
                                       inc  ax
     find_end_and_finish:              
-                                      cmp  cx, [count]
-                                      jae  exit
                                       push bx
                                       mov  bx, cx
                                       mov  dl, [program + bx]
                                       pop  bx
-                                    ;   push ax
-                                    ;   push dx
-                                    ;   mov  dx, 0
-                                    ;   mov  ah, 02h
-                                    ;   int  21h
-                                    ;   pop  dx
-                                    ;   pop  ax
                                       inc  cx
+    ;   push ax
+    ;   mov  ah, 02h
+    ;   int  21h
+    ;   pop  ax
                                       cmp  dl, '['
                                       je   nested_loop_that_shouldnt_perform
                                       cmp  dl, ']'
@@ -90,9 +91,9 @@
                                       jmp  find_end_and_finish
 
     end_of_loop:                      
-                                      dec  ax
                                       cmp  ax, 0
-                                      jne  end_of_nested_loop                   ; pop the pointer to last [
+                                      jne  end_of_nested_loop
+                                      pop  dx                                   ; pop the pointer to last [
                                       jmp  main_program_loop
 
     end_of_nested_loop:               
@@ -138,6 +139,11 @@
 
     begin_loop:                       
                                       cmp  [memory + bx], 0
+                                      push dx
+                                      mov  dx, [memory + bx]
+                                      mov  ah, 02h
+                                      int  21h
+                                      pop  dx
                                       je   loop_should_not_perform
                                       dec  cx
                                       push cx
@@ -153,7 +159,7 @@
                                       dec  cx
                                       push cx
                                       inc  cx
-                                      mov  ax, 1
+                                      xor  ax, ax
                                       jmp  find_end_and_finish
 
     filename                          db   128 dup(0)                           ; Allocate space for the filename, adjust size as needed
