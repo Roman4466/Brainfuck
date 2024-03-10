@@ -80,10 +80,6 @@
                                       mov  dl, [program + bx]
                                       pop  bx
                                       inc  cx
-    ;   push ax
-    ;   mov  ah, 02h
-    ;   int  21h
-    ;   pop  ax
                                       cmp  dl, '['
                                       je   nested_loop_that_shouldnt_perform
                                       cmp  dl, ']'
@@ -118,11 +114,15 @@
 
 
     input:                            
-                                      mov  ah, 01h                              ; DOS function: Read character from standard input
+                                      mov  ah, 3Fh
+                                      push bx
+                                      push cx
+                                      mov  bx, 0h                               ; stdin handle
+                                      mov  cx, 1                                ; 1 byte to read
+                                      mov  dx, offset oneChar                   ; read to ds:dx
                                       int  21h                                  ; Call DOS interrupt
                                       mov  [memory + bx], ax
                                       jmp  main_program_loop
-
     output:                           
                                       mov  dx, [memory + bx]                    ; Load the next character to print
                                       mov  ah, 02h                              ; DOS function: Print character in DL
@@ -139,11 +139,11 @@
 
     begin_loop:                       
                                       cmp  [memory + bx], 0
-                                      push dx
-                                      mov  dx, [memory + bx]
-                                      mov  ah, 02h
-                                      int  21h
-                                      pop  dx
+    ;   push dx
+    ;   mov  dx, [memory + bx]
+    ;   mov  ah, 02h
+    ;   int  21h
+    ;   pop  dx
                                       je   loop_should_not_perform
                                       dec  cx
                                       push cx
@@ -152,7 +152,6 @@
     
     end_loop:                         
                                       pop  cx
-                                      push cx
                                       jmp  main_program_loop
 
     loop_should_not_perform:          
@@ -161,10 +160,10 @@
                                       inc  cx
                                       xor  ax, ax
                                       jmp  find_end_and_finish
-
     filename                          db   128 dup(0)                           ; Allocate space for the filename, adjust size as needed
 
     memory                            dw   10000 dup(0)                         ; Brainfuck memory tape should be bytes
     program                           db   10000 dup(0)                         ; Placeholder for Brainfuck program code
     count                             dw   0
+    oneChar                           db   ?
 end start

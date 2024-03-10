@@ -5,4 +5,4 @@ rename %1.com __entry.com
 del entry.com >nul
 rename __entry.com entry.com
 echo Testing...
-@REM TESTIT
+TESTIT
