@@ -37,22 +37,25 @@
                                       int  21h                                  ; Call DOS interrupt
 
     done_reading:                     
-                                      xor  cx, cx
                                       xor  bx, bx
-    main_program_loop:                
-                                      cmp  cx, [count]
-                                      jae  exit
+                                      xor  si, si
+                                      jmp  main_program_loop
+    
+    input:                            
+                                      mov  ah, 3Fh
                                       push bx
-                                      mov  bx, cx
-                                      mov  dl, [program + bx]
-                                      pop  bx
-                                      inc  cx
-    ;   push dx
-    ;   mov dx, [memory + bx]
-    ;   mov  ah, 02h
-    ;   int  21h
-    ;   pop  dx
-                                      cmp  ax, 0
+                                      mov  bx, 0h                               ; stdin handle
+                                      mov  cx, 1                                ; 1 byte to read
+                                      mov  dx, offset oneChar                   ; read to ds:dx
+                                      int  21h
+                                      pop  bx                                   ; Call DOS interrupt
+                                      mov  [memory + bx], ax
+                                      jmp  main_program_loop
+    main_program_loop:                
+                                      cmp  si, [count]
+                                      jae  exit
+                                      mov  dl, [program + si]
+                                      inc  si
                                       cmp  dl, '+'
                                       je   increment
                                       cmp  dl, '-'
@@ -75,11 +78,8 @@
     nested_loop_that_shouldnt_perform:
                                       inc  ax
     find_end_and_finish:              
-                                      push bx
-                                      mov  bx, cx
-                                      mov  dl, [program + bx]
-                                      pop  bx
-                                      inc  cx
+                                      mov  dl, [program + si]
+                                      inc  si
                                       cmp  dl, '['
                                       je   nested_loop_that_shouldnt_perform
                                       cmp  dl, ']'
@@ -112,21 +112,17 @@
                                       mov  [memory + bx], ax
                                       jmp  main_program_loop
 
-
-    input:                            
-                                      mov  ah, 3Fh
-                                      push bx
-                                      push cx
-                                      mov  bx, 0h                               ; stdin handle
-                                      mov  cx, 1                                ; 1 byte to read
-                                      mov  dx, offset oneChar                   ; read to ds:dx
-                                      int  21h                                  ; Call DOS interrupt
-                                      mov  [memory + bx], ax
-                                      jmp  main_program_loop
     output:                           
-                                      mov  dx, [memory + bx]                    ; Load the next character to print
+                                      mov  ax, [memory + bx]                    ; Load the next character to print
+                                      cmp  ax, 0Ah                              ; Check if it's linefeed
+                                      jne  print_char                           ; If not, jump to print the character
+                                      mov  dl, 0Dh                              ; Set DL to carriage return
                                       mov  ah, 02h                              ; DOS function: Print character in DL
-                                      int  21h                                  ; Call DOS interrupt
+                                      int  21h                                  ; Call DOS interrupt to print carriage return
+    print_char:                       
+                                      mov  dl, al                               ; Load the character to DL for printing
+                                      mov  ah, 02h                              ; DOS function: Print character in DL
+                                      int  21h                                  ; Call DOS interrupt to print character
                                       jmp  main_program_loop
 
     shift_left:                       
@@ -139,31 +135,27 @@
 
     begin_loop:                       
                                       cmp  [memory + bx], 0
-    ;   push dx
-    ;   mov  dx, [memory + bx]
-    ;   mov  ah, 02h
-    ;   int  21h
-    ;   pop  dx
                                       je   loop_should_not_perform
-                                      dec  cx
-                                      push cx
-                                      inc  cx
+                                      dec  si
+                                      push si
+                                      inc  si
                                       jmp  main_program_loop
     
     end_loop:                         
-                                      pop  cx
+                                      pop  si
                                       jmp  main_program_loop
 
     loop_should_not_perform:          
-                                      dec  cx
-                                      push cx
-                                      inc  cx
+                                      dec  si
+                                      push si
+                                      inc  si
                                       xor  ax, ax
                                       jmp  find_end_and_finish
+
     filename                          db   128 dup(0)                           ; Allocate space for the filename, adjust size as needed
 
     memory                            dw   10000 dup(0)                         ; Brainfuck memory tape should be bytes
     program                           db   10000 dup(0)                         ; Placeholder for Brainfuck program code
     count                             dw   0
-    oneChar                           db   ?
+    oneChar                           dw   ?
 end start
