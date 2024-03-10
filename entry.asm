@@ -40,16 +40,20 @@
                                       xor  bx, bx
                                       xor  si, si
                                       jmp  main_program_loop
-    
+
     input:                            
                                       mov  ah, 3Fh
                                       push bx
+                                      push cx
                                       mov  bx, 0h                               ; stdin handle
                                       mov  cx, 1                                ; 1 byte to read
                                       mov  dx, offset oneChar                   ; read to ds:dx
-                                      int  21h
-                                      pop  bx                                   ; Call DOS interrupt
+                                      int  21h                                  ; Call DOS interrupt to read character
+                                      cmp  al, 0Dh                              ; Compare read character with carriage return
+                                      je   main_program_loop                                ; Call DOS interrupt
                                       mov  [memory + bx], ax
+                                      pop  bx
+                                      pop  cx
                                       jmp  main_program_loop
     main_program_loop:                
                                       cmp  si, [count]
@@ -126,11 +130,11 @@
                                       jmp  main_program_loop
 
     shift_left:                       
-                                      dec  bx
+                                      add  bx, -2
                                       jmp  main_program_loop
 
     shift_right:                      
-                                      inc  bx
+                                      add  bx, 2
                                       jmp  main_program_loop
 
     begin_loop:                       
