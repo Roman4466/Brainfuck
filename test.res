@@ -1,9 +1,12 @@
 
 === test1.b ===
-3A
+Bad command or filename - "entry"
+
 === test2.b ===
+Bad command or filename - "entry"
 
 === test3.b ===
+Bad command or filename - "entry"
 
 === test4.b ===
-BB
+Bad command or filename - "entry"
