@@ -1,6 +1,5 @@
 .model tiny
 .data
-    oneChar      dw 0
     data_pointer dw 0
     filename     db 128 dup(0)      ; Allocate space for the filename, adjust size as needed
     memory       dw 10000 dup(0)    ; Brainfuck memory tape should be bytes
@@ -52,48 +51,36 @@
     done_reading:                     
                                       xor  bx, bx
                                       xor  si, si
-                                      mov data_pointer, offset memory
+                                      mov  data_pointer, offset memory
                                       jmp  main_program_loop
 
     input:                            
-                                      mov  ah, 3Fh
-                                      push bx
-                                      mov  bx, 0h                               ; stdin handle
-                                      mov  cx, 1                                ; 1 byte to read
-                                      mov  dx, offset oneChar                   ; read to ds:dx
-                                      int  21h
-                                      mov  ax, [oneChar]
-                                      cmp  ax, 0Dh
-                                      jne  ax_is_not_odh
-                                      push ax
-                                      push dx
-                                      mov  dx, [oneChar]
-                                      mov  ah, 02h
-                                      int  21h
-                                      pop  dx
-                                      pop  ax
                                       mov  ah, 3fh                              ; syscall read file
                                       mov  bx, 0                                ; from stdin
                                       mov  cx, 1                                ; bytes to read
-                                      mov  dx, offset oneChar                   ; to current pointer
+                                      mov  dx, data_pointer                     ; to current pointer
                                       int  21h
-                                      mov  ax, [oneChar]
-                                      mov  [memory + bx], ax
+            
+    enter_check:                      
+                                      mov  bx, data_pointer
+                                      cmp  word ptr ds:[bx], 0Dh
+                                      jne  eof_check
+    ; if read 0Dh, read again to get only 0Ah
+                                      mov  ah, 3fh                              ; syscall read file
+                                      mov  bx, 0                                ; from stdin
+                                      mov  cx, 1                                ; bytes to read
+                                      mov  dx, data_pointer                     ; to current pointer
+                                      int  21h
 
-    ax_is_not_odh:                    
-                                      cmp  ax, 0                                ; Compare read character with carriage return
-                                      jne  al_is_not_zero
-                                      push ax
-                                      push dx
-                                      mov  dx, [oneChar]
-                                      mov  ah, 02h
-                                      int  21h
-                                      pop  dx
-                                      pop  ax
-                                      mov  ax, -1
-    al_is_not_zero:                   
-                                      pop  bx
-                                      mov  [memory + bx], ax
+    eof_check:                        
+                                      cmp  ax, 0                                ; if EOF - ax == 0
+                                      je   if_eof
+                                      jmp  main_program_loop
+    if_eof:                           
+                                      mov  bx, data_pointer
+                                      mov  word ptr ds:[bx], -1
+                                      jmp  main_program_loop
+
     main_program_loop:                
                                       cmp  si, [count]
                                       jae  short exit
@@ -144,19 +131,22 @@
                                       int  21h
 
     increment:                        
-                                      mov  ax, [memory + bx]
+                                      mov  bx, data_pointer
+                                      mov  ax, word ptr ds:[bx]
                                       inc  ax
-                                      mov  [memory + bx], ax
+                                      mov  word ptr ds:[bx], ax
                                       jmp  main_program_loop
 
     decrement:                        
-                                      mov  ax, [memory + bx]
+                                      mov  bx, data_pointer
+                                      mov  ax, word ptr ds:[bx]
                                       dec  ax
-                                      mov  [memory + bx], ax
+                                      mov  word ptr ds:[bx], ax
                                       jmp  main_program_loop
 
     output:                           
-                                      mov  ax, [memory + bx]                    ; Load the next character to print
+                                      mov  bx, data_pointer
+                                      mov  ax, word ptr ds:[bx]                 ; Load the next character to print
     ;   cmp  ax, 0Ah                              ; Check if it's linefeed
     ;   jne  short print_char                           ; If not, jump to print the character
     ;   mov  dl, 0Dh                              ; Set DL to carriage return
@@ -169,15 +159,16 @@
                                       jmp  main_program_loop
 
     shift_left:                       
-                                      add  bx, -2
+                                      add  data_pointer, -2
                                       jmp  main_program_loop
 
     shift_right:                      
-                                      add  bx, 2
+                                      add  data_pointer, 2
                                       jmp  main_program_loop
 
     begin_loop:                       
-                                      cmp  [memory + bx], 0
+                                      mov  bx, data_pointer
+                                      cmp  word ptr ds:[bx], 0
                                       je   short loop_should_not_perform
                                       dec  si
                                       push si

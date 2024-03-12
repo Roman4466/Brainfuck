@@ -6,5 +6,5 @@ del entry.com >nul
 rename __entry.com entry.com
 echo Testing...
 @REM TESTIT
-echo === test2.b ===
-echo abcde| entry b.b
+echo === test4.b ===>>test.res
+entry test4.b >>test.res
