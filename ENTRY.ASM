@@ -69,9 +69,9 @@
 
     char_read:                        
                                       mov  ax, [readChar]
-                                      pop  bx    
+                                      pop  bx
                                       cmp  ax, 0Dh
-                                      je   input                               ; load the read byte into al
+                                      je   input                                ; load the read byte into al
                                       mov  [memory + bx], ax                    ; store the byte into the current tape position
     main_program_loop:                
                                       cmp  si, [count]
@@ -135,14 +135,14 @@
                                       jmp  main_program_loop
 
     output:                           
-                                      mov  ax, [memory + bx]                    ; Load the next character to print
-    ;   cmp  ax, 0Ah                              ; Check if it's linefeed
-    ;   jne  short print_char                           ; If not, jump to print the character
-    ;   mov  dl, 0Dh                              ; Set DL to carriage return
-    ;   mov  ah, 02h                              ; DOS function: Print character in DL
-    ;   int  21h                                  ; Call DOS interrupt to print carriage return
-    print_char:                       
-                                      mov  dl, al                               ; Load the character to DL for printing
+                                      mov  dx, [memory + bx]                    ; Load the next character to print
+                                    ;   cmp  ax, 0Ah                              ; Check if it's linefeed
+                                    ;   jne  short print_char                     ; If not, jump to print the character
+                                    ;   mov  dl, 0Dh                              ; Set DL to carriage return
+                                    ;   mov  ah, 02h                              ; DOS function: Print character in DL
+                                    ;   int  21h                                  ; Call DOS interrupt to print carriage return
+    ; print_char:                       
+                                    ;   mov  dx, ax                               ; Load the character to DL for printing
                                       mov  ah, 02h                              ; DOS function: Print character in DL
                                       int  21h                                  ; Call DOS interrupt to print character
                                       jmp  main_program_loop

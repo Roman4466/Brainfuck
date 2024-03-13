@@ -9,7 +9,7 @@ echo abcde| entry test2.b >>test.res
 
 echo.>>test.res
 echo === test3.b ===>>test.res
-echo 58ï¿½3ï¿½91| entry test3.b >>test.res
+echo 58á3«91| entry test3.b >>test.res
 
 echo.>>test.res
 echo === test4.b ===>>test.res
