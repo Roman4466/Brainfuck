@@ -4,7 +4,7 @@
     filename db 128 dup(0)      ; Allocate space for the filename, adjust size as needed
     memory   dw 10000 dup(0)    ; Brainfuck memory tape should be bytes
     program  db 10000 dup(0)    ; Placeholder for Brainfuck program code
-    count    dw 0
+    count    dw ?
 .code
                                       org  0100h
     start:                            
@@ -136,13 +136,14 @@
 
     output:                           
                                       mov  dx, [memory + bx]                    ; Load the next character to print
-                                    ;   cmp  ax, 0Ah                              ; Check if it's linefeed
-                                    ;   jne  short print_char                     ; If not, jump to print the character
-                                    ;   mov  dl, 0Dh                              ; Set DL to carriage return
-                                    ;   mov  ah, 02h                              ; DOS function: Print character in DL
-                                    ;   int  21h                                  ; Call DOS interrupt to print carriage return
-    ; print_char:                       
-                                    ;   mov  dx, ax                               ; Load the character to DL for printing
+                                      cmp  dx, 0Ah                              ; Check if it's linefeed
+                                      jne  short print_char
+                                      push dx                                   ; If not, jump to print the character
+                                      mov  dl, 0Dh                              ; Set DL to carriage return
+                                      mov  ah, 02h                              ; DOS function: Print character in DL
+                                      int  21h
+                                      pop  dx                                   ; Call DOS interrupt to print carriage return
+    print_char:                                                                 ; Load the character to DL for printing
                                       mov  ah, 02h                              ; DOS function: Print character in DL
                                       int  21h                                  ; Call DOS interrupt to print character
                                       jmp  main_program_loop
