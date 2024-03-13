@@ -1,5 +1,8 @@
 
 === test1.b ===
 3A
-=== test4.b ===
-BB
+
+=== test2.b ===
+
+edcba
+=== test3.b ===
