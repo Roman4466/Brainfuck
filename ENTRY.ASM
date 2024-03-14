@@ -1,13 +1,40 @@
+
 .model tiny
 .data
-    readChar dw 0
-    filename db 128 dup(0)      ; Allocate space for the filename, adjust size as needed
-    memory   dw 10000 dup(0)    ; Brainfuck memory tape should be bytes
-    program  db 10000 dup(0)    ; Placeholder for Brainfuck program code
-    count    dw ?
+    readChar dw ?
+    filename db 128 dup(?)      ; Allocate space for the filename, adjust size as needed
+    memory   dw 10000 dup(?)    ; Brainfuck memory tape should be bytes
+    program  db 10000 dup(?)    ; Placeholder for Brainfuck program code
+    count    dw 0
 .code
-                                      org  0100h
-    start:                            
+                                      org  100h
+
+main proc
+                                      mov  readChar, 0
+    make_program_zero:                
+                                      cmp  si, 10000
+                                      jae  short make_memory_zero
+                                      mov  [program + si], 0
+                                      inc  si
+
+
+    make_memory_zero:                 
+                                      xor  si, si
+    continue_making_memory_zero:      
+                                      cmp  si, 10000
+                                      jae  short make_filename_zero
+                                      mov  [memory + si], 0
+                                      inc  si
+
+    make_filename_zero:               
+                                      xor  si, si
+    continue_making_filename_zero:    
+                                      cmp  si, 128
+                                      jae  short finally_start
+                                      mov  [filename + si], 0
+                                      inc  si
+
+    finally_start:                    
                                       mov  si, offset 082h
                                       mov  ah, 06h
                                       lea  bx, [filename]                       ; Load address of filename buffer
@@ -62,7 +89,6 @@
                                       int  21h                                  ; read into buffer
                                       cmp  ax, 0                                ; Check if the number of bytes read is 0 (EOF)
                                       jne  short char_read                      ; If not EOF, continue as before
-    ; If EOF is detected:
                                       pop  bx
                                       mov  [memory + bx], 0FFFFh                ; Set the buffer element at DI to -1 (0xFFFF)
                                       jmp  short main_program_loop
@@ -174,5 +200,5 @@
                                       inc  si
                                       xor  ax, ax
                                       jmp  find_end_and_finish
-
-end start
+main endp
+end main
