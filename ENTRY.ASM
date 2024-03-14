@@ -1,52 +1,31 @@
 
 .model tiny
-.data
-    readChar dw ?
+.data?
     filename db 128 dup(?)      ; Allocate space for the filename, adjust size as needed
-    memory   dw 10000 dup(?)    ; Brainfuck memory tape should be bytes
-    program  db 10000 dup(?)    ; Placeholder for Brainfuck program code
-    count    dw 0
+    memory   dw 10002 dup(?)    ; Brainfuck memory tape should be bytes
+    program  db 10000 dup(?)    ; Placeholder for Brainfuck program code    
 .code
                                       org  100h
-
 main proc
-                                      mov  readChar, 0
-    make_program_zero:                
-                                      cmp  si, 10000
-                                      jae  short make_memory_zero
-                                      mov  [program + si], 0
-                                      inc  si
-
-
-    make_memory_zero:                 
-                                      xor  si, si
-    continue_making_memory_zero:      
-                                      cmp  si, 10000
-                                      jae  short make_filename_zero
-                                      mov  [memory + si], 0
-                                      inc  si
-
-    make_filename_zero:               
-                                      xor  si, si
-    continue_making_filename_zero:    
-                                      cmp  si, 128
+    start:                            
+                                      cmp  si, 10130
                                       jae  short finally_start
                                       mov  [filename + si], 0
                                       inc  si
+                                      jmp  short start
 
     finally_start:                    
                                       mov  si, offset 082h
-                                      mov  ah, 06h
-                                      lea  bx, [filename]                       ; Load address of filename buffer
+                                      lea  bx, [filename]                             ; Load address of filename buffer
 
     read_loop:                        
-                                      mov  dl, [si]                             ; Load next character from command line
-                                      cmp  dl, 0Dh                              ; Check for carriage return (end of input)
-                                      je   end_of_filename                      ; If found, end reading loop
-                                      mov  [bx], dl                             ; Store character in filename buffer
-                                      inc  bx                                   ; Move to next position in buffer
-                                      inc  si                                   ; Move to next character in command line
-                                      jmp  read_loop                            ; Repeat loop
+                                      mov  dl, [si]                                   ; Load next character from command line
+                                      cmp  dl, 0Dh                                    ; Check for carriage return (end of input)
+                                      je   short end_of_filename                      ; If found, end reading loop
+                                      mov  [bx], dl                                   ; Store character in filename buffer
+                                      inc  bx                                         ; Move to next position in buffer
+                                      inc  si                                         ; Move to next character in command line
+                                      jmp  short read_loop                            ; Repeat loop
     ; Call MSDOS
 
     end_of_filename:                  
@@ -54,14 +33,14 @@ main proc
                                       mov  byte ptr [di], 0
                                       mov  ah, 3Dh
                                       lea  dx, filename
-                                      mov  al, 0
+                                      xor  al, al
                                       int  21h
                                       mov  bx, ax
                                       mov  ah, 3Fh
                                       lea  dx, program
                                       mov  cx, 10000
                                       int  21h
-                                      mov  [count], ax
+                                      mov  cx, ax
     ;   push dx
     ;   push ax
     ;   mov  dx, [count]
@@ -76,31 +55,33 @@ main proc
 
 
     done_reading:                     
-                                      xor  bx, bx
+                                      mov  bx, 2
                                       xor  si, si
-                                      jmp  main_program_loop
+                                      jmp  short main_program_loop
 
     input:                            
                                       mov  ah, 3Fh
                                       push bx
-                                      mov  bx, 0                                ; stdin handle
-                                      mov  cx, 1                                ; 1 byte to read
-                                      lea  dx, readChar                         ; buffer to read into
-                                      int  21h                                  ; read into buffer
-                                      cmp  ax, 0                                ; Check if the number of bytes read is 0 (EOF)
-                                      jne  short char_read                      ; If not EOF, continue as before
+                                      mov  bx, 0                                      ; stdin handle
+                                      push cx
+                                      mov  cx, 1                                      ; 1 byte to read
+                                      lea  dx, memory                                 ; buffer to read into
+                                      int  21h                                        ; read into buffer
+                                      pop  cx
+                                      cmp  ax, 0                                      ; Check if the number of bytes read is 0 (EOF)
+                                      jne  short char_read                            ; If not EOF, continue as before
                                       pop  bx
-                                      mov  [memory + bx], 0FFFFh                ; Set the buffer element at DI to -1 (0xFFFF)
+                                      mov  [memory + bx], 0FFFFh                      ; Set the buffer element at DI to -1 (0xFFFF)
                                       jmp  short main_program_loop
 
     char_read:                        
-                                      mov  ax, [readChar]
+                                      mov  ax, [memory]
                                       pop  bx
                                       cmp  ax, 0Dh
-                                      je   input                                ; load the read byte into al
-                                      mov  [memory + bx], ax                    ; store the byte into the current tape position
+                                      je   input                                      ; load the read byte into al
+                                      mov  [memory + bx], ax                          ; store the byte into the current tape position
     main_program_loop:                
-                                      cmp  si, [count]
+                                      cmp  si, cx
                                       jae  short exit
                                       mov  dl, [program + si]
                                       inc  si
@@ -120,7 +101,7 @@ main proc
                                       je   begin_loop
                                       cmp  dl, ']'
                                       je   end_loop
-                                      jmp  main_program_loop
+                                      jmp  short main_program_loop
 
                                       
     nested_loop_that_shouldnt_perform:
@@ -129,15 +110,15 @@ main proc
                                       mov  dl, [program + si]
                                       inc  si
                                       cmp  dl, '['
-                                      je   nested_loop_that_shouldnt_perform
+                                      je   short nested_loop_that_shouldnt_perform
                                       cmp  dl, ']'
-                                      je   end_of_loop
-                                      jmp  find_end_and_finish
+                                      je   short  end_of_loop
+                                      jmp  short find_end_and_finish
 
     end_of_loop:                      
                                       cmp  ax, 0
                                       jne  short end_of_nested_loop
-                                      pop  dx                                   ; pop the pointer to last [
+                                      pop  dx                                         ; pop the pointer to last [
                                       jmp  short main_program_loop
 
     end_of_nested_loop:               
@@ -145,7 +126,7 @@ main proc
                                       jmp  short find_end_and_finish
 
     exit:                             
-                                      mov  ax, 4C00h                            ; Terminate the program
+                                      mov  ax, 4C00h                                  ; Terminate the program
                                       int  21h
 
     increment:                        
@@ -161,17 +142,17 @@ main proc
                                       jmp  main_program_loop
 
     output:                           
-                                      mov  dx, [memory + bx]                    ; Load the next character to print
-                                      cmp  dx, 0Ah                              ; Check if it's linefeed
+                                      mov  dx, [memory + bx]                          ; Load the next character to print
+                                      cmp  dx, 0Ah                                    ; Check if it's linefeed
                                       jne  short print_char
-                                      push dx                                   ; If not, jump to print the character
-                                      mov  dl, 0Dh                              ; Set DL to carriage return
-                                      mov  ah, 02h                              ; DOS function: Print character in DL
+                                      push dx                                         ; If not, jump to print the character
+                                      mov  dl, 0Dh                                    ; Set DL to carriage return
+                                      mov  ah, 02h                                    ; DOS function: Print character in DL
                                       int  21h
-                                      pop  dx                                   ; Call DOS interrupt to print carriage return
-    print_char:                                                                 ; Load the character to DL for printing
-                                      mov  ah, 02h                              ; DOS function: Print character in DL
-                                      int  21h                                  ; Call DOS interrupt to print character
+                                      pop  dx                                         ; Call DOS interrupt to print carriage return
+    print_char:                                                                       ; Load the character to DL for printing
+                                      mov  ah, 02h                                    ; DOS function: Print character in DL
+                                      int  21h                                        ; Call DOS interrupt to print character
                                       jmp  main_program_loop
 
     shift_left:                       
