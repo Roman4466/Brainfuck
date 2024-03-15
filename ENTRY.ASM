@@ -3,7 +3,7 @@
 .data?
     filename db 128 dup(?)      ; Allocate space for the filename, adjust size as needed
     memory   dw 10002 dup(?)    ; Brainfuck memory tape should be bytes
-    program  db 10000 dup(?)    ; Placeholder for Brainfuck program code    
+    program  db 10000 dup(0)    ; Placeholder for Brainfuck program code    
 .code
                                       org  100h
 main proc
