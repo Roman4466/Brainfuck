@@ -2,7 +2,6 @@
 .data
     program         db 10001 dup(?)  
     memory          dw 10002 dup(?)  
-
 .code
                                       org  100h
 
@@ -12,25 +11,20 @@
     ; mov ax, @data
     ; mov ds, ax
 
-    place_null_char:                  
-                                      mov  cl, ds:[80h]
-                                      mov  bx, 81h
-                                      add  bx, cx
+                                      mov  bl, ds:[80h]
+                                      add  bx, 81h
                                       mov  byte ptr ds:[bx], 0
 
-    open_file:                        
                                       mov  ah, 3dh                                    ; syscall open file
                                       mov  dx, 82h                                    ; address at which command line is stored
                                       int  21h
                                       mov  bx, ax
  
-    read_file:                        
                                       mov  ah, 3fh                                    ; syscall read file
                                       mov  cx, 10001                                  ; bytes to read
                                       lea  dx, program                                ; to read into code_buffer
                                       int  21h
                                       mov  cx, ax
-    place_null:                       
                                       lea  bx, program
                                       add  bx, cx
                                       inc  bx
@@ -40,7 +34,7 @@
                                       mov  byte ptr ds:[memory + bx], 0
                                       inc  bx
                                       cmp  bx, 20000
-                                      jne  init_data_buffer_loop
+                                      jne  short init_data_buffer_loop
                                       mov  bx, 2
                                       xor  si, si
                                       jmp  short main_program_loop
@@ -63,7 +57,7 @@
     char_read:                        
                                       mov  ax, [memory]
                                       pop  bx
-                                      cmp  ax, 0Dh
+                                      cmp  al, 0Dh
                                       je   input                                      ; load the read byte into al
                                       mov  [memory + bx], ax                          ; store the byte into the current tape position
     main_program_loop:                
@@ -91,24 +85,24 @@
 
                                       
     nested_loop_that_shouldnt_perform:
-                                      inc  ax
+                                      inc  dx
     find_end_and_finish:              
-                                      mov  dl, [program + si]
+                                      mov  al, [program + si]
                                       inc  si
-                                      cmp  dl, '['
+                                      cmp  al, '['
                                       je   short nested_loop_that_shouldnt_perform
-                                      cmp  dl, ']'
+                                      cmp  al, ']'
                                       je   short  end_of_loop
                                       jmp  short find_end_and_finish
 
     end_of_loop:                      
-                                      cmp  ax, 0
+                                      cmp  dx, 0
                                       jne  short end_of_nested_loop
                                       pop  dx                                         ; pop the pointer to last [
                                       jmp  short main_program_loop
 
     end_of_nested_loop:               
-                                      dec  ax
+                                      dec  dx
                                       jmp  short find_end_and_finish
 
     exit:                             
@@ -165,6 +159,6 @@
                                       dec  si
                                       push si
                                       inc  si
-                                      xor  ax, ax
+                                      xor  dx, dx
                                       jmp  find_end_and_finish
 end start
