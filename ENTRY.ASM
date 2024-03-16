@@ -2,7 +2,6 @@
 .data
     program         db 10001 dup(?)  
     memory          dw 10002 dup(?)  
-    code_read       dw 1 dup(?)
 
 .code
                                       org  100h
@@ -30,10 +29,10 @@
                                       mov  cx, 10001                                  ; bytes to read
                                       lea  dx, program                                ; to read into code_buffer
                                       int  21h
-                                      mov  code_read, ax
+                                      mov  cx, ax
     place_null:                       
                                       lea  bx, program
-                                      add  bx, code_read
+                                      add  bx, cx
                                       inc  bx
                                       mov  ds:[bx], byte ptr 0
                                       mov  bx, 0
@@ -50,10 +49,12 @@
                                       mov  ah, 3Fh
                                       push bx
                                       mov  bx, 0                                      ; stdin handle
+                                      push cx
                                       mov  cx, 1                                      ; 1 byte to read
                                       lea  dx, memory                                 ; buffer to read into
                                       int  21h                                        ; read into buffer
-                                      cmp  ax, 0                                      ; Check if the number of bytes read is 0 (EOF)
+                                      pop cx
+                                      cmp  al, 0                                      ; Check if the number of bytes read is 0 (EOF)
                                       jne  short char_read                            ; If not EOF, continue as before
                                       pop  bx
                                       mov  [memory + bx], 0FFFFh                      ; Set the buffer element at DI to -1 (0xFFFF)
@@ -66,25 +67,25 @@
                                       je   input                                      ; load the read byte into al
                                       mov  [memory + bx], ax                          ; store the byte into the current tape position
     main_program_loop:                
-                                      cmp  si, [code_read]
+                                      cmp  si, cx
                                       jae  short exit
-                                      mov  dl, [program + si]
+                                      mov  al, [program + si]
                                       inc  si
-                                      cmp  dl, '+'
+                                      cmp  al, '+'
                                       je   increment
-                                      cmp  dl, '-'
+                                      cmp  al, '-'
                                       je   decrement
-                                      cmp  dl, '.'
+                                      cmp  al, '.'
                                       je   output
-                                      cmp  dl, ','
+                                      cmp  al, ','
                                       je   input
-                                      cmp  dl, '>'
+                                      cmp  al, '>'
                                       je   shift_right
-                                      cmp  dl, '<'
+                                      cmp  al, '<'
                                       je   shift_left
-                                      cmp  dl, '['
+                                      cmp  al, '['
                                       je   begin_loop
-                                      cmp  dl, ']'
+                                      cmp  al, ']'
                                       je   end_loop
                                       jmp  short main_program_loop
 
