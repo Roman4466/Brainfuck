@@ -1,27 +1,8 @@
-.model tiny
-
-;.stack 100h
- 
+.model tiny 
 .data
-    error_file_nf    db  "file not found", 0
-    error_read       db  "error read", 0
-    err_read_length  equ ($ - error_read)
-    err_length       equ 15
-
-    code_buffer_size equ 10001
-    data_buffer_size equ 10000
-    
-    data_pointer     dw  0
-
-    code_pointer     dw  0
-    loop_begin       dw  0
-    nesting_level    dw  0
-
-    ;code_buffer db ",>,.<." ; for debug
-    program          db  code_buffer_size dup(?)    ; BYTE!
-    memory           dw  data_buffer_size dup(?)    ; WORD!
-    file_descriptor  dw  1 dup(?)
-    code_read        dw  1 dup(?)
+    program         db 10001 dup(?)  
+    memory          dw 10002 dup(?)  
+    code_read       dw 1 dup(?)
 
 .code
                                       org  100h
@@ -44,12 +25,11 @@
                                       mov  al, 0                                      ; read-only
                                       mov  dx, 82h                                    ; address at which command line is stored
                                       int  21h
-                                      mov  file_descriptor, ax
+                                      mov  bx, ax
  
     read_file:                        
                                       mov  ah, 3fh                                    ; syscall read file
-                                      mov  bx, file_descriptor
-                                      mov  cx, code_buffer_size                       ; bytes to read
+                                      mov  cx, 10001                                  ; bytes to read
                                       lea  dx, program                                ; to read into code_buffer
                                       int  21h
                                       mov  code_read, ax
@@ -58,16 +38,12 @@
                                       add  bx, code_read
                                       inc  bx
                                       mov  ds:[bx], byte ptr 0
-
-    init_data_buffer:                 
                                       mov  bx, 0
     init_data_buffer_loop:            
                                       mov  byte ptr ds:[memory + bx], 0
                                       inc  bx
                                       cmp  bx, 20000
                                       jne  init_data_buffer_loop
-    done_reading:                     
-                                      mov  cx, [code_read]
                                       mov  bx, 2
                                       xor  si, si
                                       jmp  short main_program_loop
@@ -76,11 +52,9 @@
                                       mov  ah, 3Fh
                                       push bx
                                       mov  bx, 0                                      ; stdin handle
-                                      push cx
                                       mov  cx, 1                                      ; 1 byte to read
                                       lea  dx, memory                                 ; buffer to read into
                                       int  21h                                        ; read into buffer
-                                      pop  cx
                                       cmp  ax, 0                                      ; Check if the number of bytes read is 0 (EOF)
                                       jne  short char_read                            ; If not EOF, continue as before
                                       pop  bx
@@ -94,7 +68,7 @@
                                       je   input                                      ; load the read byte into al
                                       mov  [memory + bx], ax                          ; store the byte into the current tape position
     main_program_loop:                
-                                      cmp  si, cx
+                                      cmp  si, [code_read]
                                       jae  short exit
                                       mov  dl, [program + si]
                                       inc  si
