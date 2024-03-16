@@ -42,14 +42,14 @@
     input:                            
                                       mov  ah, 3Fh
                                       push bx
-                                      mov  bx, 0                                      ; stdin handle
+                                      xor bx, bx                                    ; stdin handle
                                       push cx
                                       mov  cx, 1                                      ; 1 byte to read
                                       lea  dx, memory                                 ; buffer to read into
                                       int  21h                                        ; read into buffer
                                       pop  cx
                                       cmp  al, 0                                      ; Check if the number of bytes read is 0 (EOF)
-                                      jne  short char_read                            ; If not EOF, continue as before
+                                      jnz  short char_read                            ; If not EOF, continue as before
                                       pop  bx
                                       mov  [memory + bx], 0FFFFh                      ; Set the buffer element at DI to -1 (0xFFFF)
                                       jmp  short main_program_loop
@@ -94,7 +94,7 @@
                                       cmp  al, ']'
                                       jne  short  find_end_and_finish
                                       cmp  dx, 0
-                                      jne  short end_of_nested_loop
+                                      jnz  short end_of_nested_loop
                                       pop  dx                                         ; pop the pointer to last [
                                       jmp  short main_program_loop
 
@@ -103,8 +103,8 @@
                                       jmp  short find_end_and_finish
 
     exit:                             
-                                      mov  ax, 4C00h                                  ; Terminate the program
-                                      int  21h
+                                     int  20h
+
 
     increment:                        
                                       inc  [memory + bx]
@@ -119,7 +119,7 @@
                                       push si
                                       inc  si
                                       cmp  [memory + bx], 0
-                                      jne  main_program_loop
+                                      jnz  main_program_loop
                                       xor  dx, dx
                                       jmp  find_end_and_finish
 
