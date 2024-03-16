@@ -1,60 +1,73 @@
-
 .model tiny
-.data?
-    filename db 128 dup(?)      ; Allocate space for the filename, adjust size as needed
-    memory   dw 10002 dup(?)    ; Brainfuck memory tape should be bytes
-    program  db 10000 dup(0)    ; Placeholder for Brainfuck program code    
+
+;.stack 100h
+ 
+.data
+    error_file_nf    db  "file not found", 0
+    error_read       db  "error read", 0
+    err_read_length  equ ($ - error_read)
+    err_length       equ 15
+
+    code_buffer_size equ 10001
+    data_buffer_size equ 10000
+    
+    data_pointer     dw  0
+
+    code_pointer     dw  0
+    loop_begin       dw  0
+    nesting_level    dw  0
+
+    ;code_buffer db ",>,.<." ; for debug
+    program          db  code_buffer_size dup(?)    ; BYTE!
+    memory           dw  data_buffer_size dup(?)    ; WORD!
+    file_descriptor  dw  1 dup(?)
+    code_read        dw  1 dup(?)
+
 .code
                                       org  100h
-main proc
+
     start:                            
-                                      cmp  si, 10130
-                                      jae  short finally_start
-                                      mov  [filename + si], 0
-                                      inc  si
-                                      jmp  short start
 
-    finally_start:                    
-                                      mov  si, offset 082h
-                                      lea  bx, [filename]                             ; Load address of filename buffer
+    ; for debug
+    ; mov ax, @data
+    ; mov ds, ax
 
-    read_loop:                        
-                                      mov  dl, [si]                                   ; Load next character from command line
-                                      cmp  dl, 0Dh                                    ; Check for carriage return (end of input)
-                                      je   short end_of_filename                      ; If found, end reading loop
-                                      mov  [bx], dl                                   ; Store character in filename buffer
-                                      inc  bx                                         ; Move to next position in buffer
-                                      inc  si                                         ; Move to next character in command line
-                                      jmp  short read_loop                            ; Repeat loop
-    ; Call MSDOS
+    place_null_char:                  
+                                      mov  cl, ds:[80h]
+                                      xor  ch, ch
+                                      mov  bx, 81h
+                                      add  bx, cx
+                                      mov  byte ptr ds:[bx], 0
 
-    end_of_filename:                  
-    ; Null-terminate the filename
-                                      mov  byte ptr [di], 0
-                                      mov  ah, 3Dh
-                                      lea  dx, filename
-                                      xor  al, al
+    open_file:                        
+                                      mov  ah, 3dh                                    ; syscall open file
+                                      mov  al, 0                                      ; read-only
+                                      mov  dx, 82h                                    ; address at which command line is stored
                                       int  21h
-                                      mov  bx, ax
-                                      mov  ah, 3Fh
-                                      lea  dx, program
-                                      mov  cx, 10000
+                                      mov  file_descriptor, ax
+ 
+    read_file:                        
+                                      mov  ah, 3fh                                    ; syscall read file
+                                      mov  bx, file_descriptor
+                                      mov  cx, code_buffer_size                       ; bytes to read
+                                      lea  dx, program                                ; to read into code_buffer
                                       int  21h
-                                      mov  cx, ax
-    ;   push dx
-    ;   push ax
-    ;   mov  dx, [count]
-    ;   mov  ah, 02h
-    ;   int  21h
-    ;   pop  ax
-    ;   pop  dx
+                                      mov  code_read, ax
+    place_null:                       
+                                      lea  bx, program
+                                      add  bx, code_read
+                                      inc  bx
+                                      mov  ds:[bx], byte ptr 0
 
-                                      mov  ah, 3Eh
-                                      mov  bx, bx
-                                      int  21h
-
-
+    init_data_buffer:                 
+                                      mov  bx, 0
+    init_data_buffer_loop:            
+                                      mov  byte ptr ds:[memory + bx], 0
+                                      inc  bx
+                                      cmp  bx, 20000
+                                      jne  init_data_buffer_loop
     done_reading:                     
+                                      mov  cx, [code_read]
                                       mov  bx, 2
                                       xor  si, si
                                       jmp  short main_program_loop
@@ -181,5 +194,4 @@ main proc
                                       inc  si
                                       xor  ax, ax
                                       jmp  find_end_and_finish
-main endp
-end main
+end start
