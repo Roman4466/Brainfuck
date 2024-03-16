@@ -10,6 +10,7 @@
 @REM entry test1.b 
 TASM entry.asm
 TLINK /t entry.obj
+dir entry.com | find "entry.com"
 @REM tasm /zi entry.asm
 @REM tlink /v/3 entry.obj
 @REM td entry.exe test1.b

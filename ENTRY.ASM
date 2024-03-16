@@ -15,14 +15,12 @@
 
     place_null_char:                  
                                       mov  cl, ds:[80h]
-                                      xor  ch, ch
                                       mov  bx, 81h
                                       add  bx, cx
                                       mov  byte ptr ds:[bx], 0
 
     open_file:                        
                                       mov  ah, 3dh                                    ; syscall open file
-                                      mov  al, 0                                      ; read-only
                                       mov  dx, 82h                                    ; address at which command line is stored
                                       int  21h
                                       mov  bx, ax
