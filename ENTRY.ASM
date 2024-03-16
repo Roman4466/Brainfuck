@@ -92,10 +92,7 @@
                                       cmp  al, '['
                                       je   short nested_loop_that_shouldnt_perform
                                       cmp  al, ']'
-                                      je   short  end_of_loop
-                                      jmp  short find_end_and_finish
-
-    end_of_loop:                      
+                                      jne   short  find_end_and_finish
                                       cmp  dx, 0
                                       jne  short end_of_nested_loop
                                       pop  dx                                         ; pop the pointer to last [
@@ -113,13 +110,22 @@
                                       mov  ax, [memory + bx]
                                       inc  ax
                                       mov  [memory + bx], ax
-                                      jmp  main_program_loop
+                                      jmp  short main_program_loop
 
     decrement:                        
                                       mov  ax, [memory + bx]
                                       dec  ax
                                       mov  [memory + bx], ax
                                       jmp  main_program_loop
+
+    begin_loop:                       
+                                      dec  si
+                                      push si
+                                      inc  si
+                                      cmp  [memory + bx], 0
+                                      jne   main_program_loop 
+                                      xor  dx, dx
+                                      jmp  find_end_and_finish
 
     output:                           
                                       mov  dx, [memory + bx]                          ; Load the next character to print
@@ -142,23 +148,8 @@
     shift_right:                      
                                       add  bx, 2
                                       jmp  main_program_loop
-
-    begin_loop:                       
-                                      cmp  [memory + bx], 0
-                                      je   short loop_should_not_perform
-                                      dec  si
-                                      push si
-                                      inc  si
-                                      jmp  main_program_loop
     
     end_loop:                         
                                       pop  si
                                       jmp  main_program_loop
-
-    loop_should_not_perform:          
-                                      dec  si
-                                      push si
-                                      inc  si
-                                      xor  dx, dx
-                                      jmp  find_end_and_finish
 end start
