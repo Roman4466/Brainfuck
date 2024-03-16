@@ -1,7 +1,7 @@
 .model tiny 
 .data
-    program         db 10001 dup(?)  
-    memory          dw 10002 dup(?)  
+    program db 10001 dup(?)
+    memory  dw 10002 dup(?)
 .code
                                       org  100h
 
@@ -47,7 +47,7 @@
                                       mov  cx, 1                                      ; 1 byte to read
                                       lea  dx, memory                                 ; buffer to read into
                                       int  21h                                        ; read into buffer
-                                      pop cx
+                                      pop  cx
                                       cmp  al, 0                                      ; Check if the number of bytes read is 0 (EOF)
                                       jne  short char_read                            ; If not EOF, continue as before
                                       pop  bx
@@ -92,7 +92,7 @@
                                       cmp  al, '['
                                       je   short nested_loop_that_shouldnt_perform
                                       cmp  al, ']'
-                                      jne   short  find_end_and_finish
+                                      jne  short  find_end_and_finish
                                       cmp  dx, 0
                                       jne  short end_of_nested_loop
                                       pop  dx                                         ; pop the pointer to last [
@@ -107,15 +107,11 @@
                                       int  21h
 
     increment:                        
-                                      mov  ax, [memory + bx]
-                                      inc  ax
-                                      mov  [memory + bx], ax
+                                      inc  [memory + bx]
                                       jmp  short main_program_loop
 
     decrement:                        
-                                      mov  ax, [memory + bx]
-                                      dec  ax
-                                      mov  [memory + bx], ax
+                                      dec  [memory + bx]
                                       jmp  main_program_loop
 
     begin_loop:                       
@@ -123,7 +119,7 @@
                                       push si
                                       inc  si
                                       cmp  [memory + bx], 0
-                                      jne   main_program_loop 
+                                      jne  main_program_loop
                                       xor  dx, dx
                                       jmp  find_end_and_finish
 
