@@ -1,7 +1,7 @@
 
  Start  Stop   Length Name               Class
 
- 00000H 001DDH 001DEH _TEXT              CODE
+ 00000H 001DCH 001DDH _TEXT              CODE
  001DEH 07712H 07535H _DATA              DATA
 
 

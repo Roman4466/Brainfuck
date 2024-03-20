@@ -28,16 +28,17 @@
                                       lea  bx, program
                                       add  bx, cx
                                       inc  bx
-                                      mov  ds:[bx], byte ptr 0
+                                      mov  [bx], byte ptr 0
                                       xor  bx, bx
     init_data_buffer_loop:            
-                                      mov  byte ptr ds:[memory + bx], 0
+                                      mov  byte ptr [memory + bx], 0
                                       inc  bx
                                       cmp  bx, 20000
                                       jnz  short init_data_buffer_loop
                                       lea  di, memory
                                       add  di, 2
-                                      xor  si, si
+                                      lea si, program
+                                      add cx, si
                                       jmp  short main_program_loop
 
     input:                            
@@ -61,7 +62,7 @@
     main_program_loop:                
                                       cmp  si, cx
                                       jae  short exit
-                                      mov  al, [program + si]
+                                      mov  al, byte ptr [si]
                                       inc  si
                                       cmp  al, '+'
                                       jz   increment
@@ -80,12 +81,13 @@
                                       cmp  al, ']'
                                       jz   end_loop
                                       jmp  short main_program_loop
-
+    exit:                             
+                                      int  20h
                                       
     nested_loop_that_shouldnt_perform:
                                       inc  dx
     find_end_and_finish:              
-                                      mov  al, [program + si]
+                                      mov  al, byte ptr [si]
                                       inc  si
                                       cmp  al, '['
                                       jz   short nested_loop_that_shouldnt_perform
@@ -100,8 +102,6 @@
                                       dec  dx
                                       jmp  short find_end_and_finish
 
-    exit:                             
-                                      int  20h
 
     increment:                        
                                       inc  word ptr [di]
