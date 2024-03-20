@@ -29,19 +29,20 @@
                                       add  bx, cx
                                       inc  bx
                                       mov  ds:[bx], byte ptr 0
-                                      mov  bx, 0
+                                      xor  bx, bx
     init_data_buffer_loop:            
                                       mov  byte ptr ds:[memory + bx], 0
                                       inc  bx
                                       cmp  bx, 20000
                                       jnz  short init_data_buffer_loop
-                                      mov  di, 2
+                                      lea  di, memory
+                                      add  di, 2
                                       xor  si, si
                                       jmp  short main_program_loop
 
     input:                            
                                       mov  ah, 3Fh
-                                      xor bx, bx                                    ; stdin handle
+                                      xor  bx, bx                                     ; stdin handle
                                       push cx
                                       mov  cx, 1                                      ; 1 byte to read
                                       lea  dx, memory                                 ; buffer to read into
@@ -49,14 +50,14 @@
                                       pop  cx
                                       cmp  al, 0                                      ; Check if the number of bytes read is 0 (EOF)
                                       jnz  short char_read                            ; If not EOF, continue as before
-                                      mov  [memory + di], 0FFFFh                      ; Set the buffer element at DI to -1 (0xFFFF)
+                                      mov  word ptr [di], 0FFFFh                      ; Set the buffer element at DI to -1 (0xFFFF)
                                       jmp  short main_program_loop
 
     char_read:                        
                                       mov  ax, [memory]
                                       cmp  al, 0Dh
                                       jz   input                                      ; load the read byte into al
-                                      mov  [memory + di], ax                          ; store the byte into the current tape position
+                                      mov  word ptr [di], ax                          ; store the byte into the current tape position
     main_program_loop:                
                                       cmp  si, cx
                                       jae  short exit
@@ -100,27 +101,27 @@
                                       jmp  short find_end_and_finish
 
     exit:                             
-                                     int  20h
+                                      int  20h
 
     increment:                        
-                                      inc  [memory + di]
+                                      inc  word ptr [di]
                                       jmp  short main_program_loop
 
     decrement:                        
-                                      dec  [memory + di]
+                                      dec  word ptr [di]
                                       jmp  main_program_loop
 
     begin_loop:                       
                                       dec  si
                                       push si
                                       inc  si
-                                      cmp  [memory + di], 0
+                                      cmp  word ptr [di], 0
                                       jnz  main_program_loop
                                       xor  dx, dx
                                       jmp  find_end_and_finish
 
     output:                           
-                                      mov  dx, [memory + di]                          ; Load the next character to print
+                                      mov  dx,  word ptr [di]                         ; Load the next character to print
                                       cmp  dx, 0Ah                                    ; Check if it's linefeed
                                       jnz  short print_char
                                       push dx                                         ; If not, jump to print the character
