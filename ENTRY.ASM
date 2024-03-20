@@ -42,8 +42,8 @@
 
     input:                            
                                       mov  ah, 3Fh
-                                      xor  bx, bx                                     ; stdin handle
                                       push cx
+                                      xor  bx, bx                                     ; stdin handle
                                       mov  cx, 1                                      ; 1 byte to read
                                       lea  dx, memory                                 ; buffer to read into
                                       int  21h                                        ; read into buffer
@@ -61,8 +61,7 @@
     main_program_loop:                
                                       cmp  si, cx
                                       jae  short exit
-                                      mov  al, byte ptr [si]
-                                      inc  si
+                                      lodsb
                                       cmp  al, '+'
                                       jz   increment
                                       cmp  al, '-'
@@ -86,8 +85,7 @@
     nested_loop_that_shouldnt_perform:
                                       inc  dx
     find_end_and_finish:              
-                                      mov  al, byte ptr [si]
-                                      inc  si
+                                      lodsb
                                       cmp  al, '['
                                       jz   short nested_loop_that_shouldnt_perform
                                       cmp  al, ']'
