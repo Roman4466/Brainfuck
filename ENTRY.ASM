@@ -44,13 +44,14 @@
                                       int   21h                                        ; read into buffer
                                       cmp   al, 0                                      ; Check if the number of bytes read is 0 (EOF)
                                       jnz   short char_read                            ; If not EOF, continue as before
-                                      mov   word ptr [di], 0FFFFh                      ; Set the buffer element at DI to -1 (0xFFFF)
-                                      jmp   short main_program_loop
+                                      mov   ax, 0FFFFh                      ; Set the buffer element at DI to -1 (0xFFFF)
+                                      jmp   short set_char_in_memory
 
     char_read:                        
                                       mov   ax, [memory]
                                       cmp   al, 0Dh
-                                      jz    input                                      ; load the read byte into al
+                                      jz    input
+    set_char_in_memory:                                                                ; load the read byte into al
                                       mov   word ptr [di], ax                          ; store the byte into the current tape position
     main_program_loop:                
                                       cmp   si, BP
@@ -93,14 +94,13 @@
                                       dec   dx
                                       jmp   short find_end_and_finish
 
-
     increment:                        
                                       inc   word ptr [di]
                                       jmp   short main_program_loop
 
     decrement:                        
                                       dec   word ptr [di]
-                                      jmp   main_program_loop
+                                      jmp   short main_program_loop
 
     begin_loop:                       
                                       dec   si
@@ -116,10 +116,9 @@
                                       mov   ah, 02h                                    ; DOS function: Print character in DL
                                       cmp   dx, 0Ah                                    ; Check if it's linefeed
                                       jnz   short print_char
-                                      push  dx                                         ; If not, jump to print the character
                                       mov   dl, 0Dh                                    ; Set DL to carriage return
                                       int   21h
-                                      pop   dx                                         ; Call DOS interrupt to print carriage return
+                                      mov   dl, 0Ah                                    ; Set DL to carriage return
     print_char:                                                                        ; Load the character to DL for printing
                                       int   21h                                        ; Call DOS interrupt to print character
                                       jmp   main_program_loop
