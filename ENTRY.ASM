@@ -2,15 +2,10 @@
 .data
     program db 10001 dup(?)
     memory  dw 10002 dup(?)
+    suck dw ?
 .code
                                       org   100h
-
     start:                            
-
-    ; for debug
-    ; mov ax, @data
-    ; mov ds, ax
-
                                       mov   bl, ds:[80h]
                                       add   bx, 81h
                                       mov   byte ptr ds:[bx], 0
@@ -30,7 +25,6 @@
                                       inc   bx
                                       loop  init_data_buffer_loop
                                       lea   di, memory
-                                      add   di, 2
                                       lea   si, program
                                       mov   BP, ax
                                       add   BP, si
@@ -40,7 +34,7 @@
                                       mov   ah, 3Fh
                                       xor   bx, bx                                     ; stdin handle
                                       mov   cx, 1                                      ; 1 byte to read
-                                      lea   dx, memory                                 ; buffer to read into
+                                      lea   dx, suck                                 ; buffer to read into
                                       int   21h                                        ; read into buffer
                                       cmp   al, 0                                      ; Check if the number of bytes read is 0 (EOF)
                                       jnz   short char_read                            ; If not EOF, continue as before
@@ -48,7 +42,7 @@
                                       jmp   short set_char_in_memory
 
     char_read:                        
-                                      mov   ax, [memory]
+                                      mov   ax, [suck]
                                       cmp   al, 0Dh
                                       jz    input
     set_char_in_memory:                                                                ; load the read byte into al
