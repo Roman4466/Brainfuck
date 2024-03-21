@@ -32,18 +32,16 @@
                                       lea   di, memory
                                       add   di, 2
                                       lea   si, program
-                                      mov   cx, ax
-                                      add   cx, si
+                                      mov   BP, ax
+                                      add   BP, si
                                       jmp   short main_program_loop
 
     input:                            
                                       mov   ah, 3Fh
-                                      push  cx
                                       xor   bx, bx                                     ; stdin handle
                                       mov   cx, 1                                      ; 1 byte to read
                                       lea   dx, memory                                 ; buffer to read into
                                       int   21h                                        ; read into buffer
-                                      pop   cx
                                       cmp   al, 0                                      ; Check if the number of bytes read is 0 (EOF)
                                       jnz   short char_read                            ; If not EOF, continue as before
                                       mov   word ptr [di], 0FFFFh                      ; Set the buffer element at DI to -1 (0xFFFF)
@@ -55,7 +53,7 @@
                                       jz    input                                      ; load the read byte into al
                                       mov   word ptr [di], ax                          ; store the byte into the current tape position
     main_program_loop:                
-                                      cmp   si, cx
+                                      cmp   si, BP
                                       jae   short exit
                                       lodsb
                                       cmp   al, '+'
