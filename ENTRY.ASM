@@ -24,7 +24,7 @@
                                       lea   dx, program                                ; to read into code_buffer
                                       int   21h
                                       mov   cx, 20000
-                                      lea bx, memory
+                                      lea   bx, memory
     init_data_buffer_loop:            
                                       mov   byte ptr [bx], 0
                                       inc   bx
@@ -112,16 +112,15 @@
                                       jmp   find_end_and_finish
 
     output:                           
-                                      mov   dx,  word ptr [di]                         ; Load the next character to print
+                                      mov   dx,  word ptr [di]
+                                      mov   ah, 02h                                    ; DOS function: Print character in DL
                                       cmp   dx, 0Ah                                    ; Check if it's linefeed
                                       jnz   short print_char
                                       push  dx                                         ; If not, jump to print the character
                                       mov   dl, 0Dh                                    ; Set DL to carriage return
-                                      mov   ah, 02h                                    ; DOS function: Print character in DL
                                       int   21h
                                       pop   dx                                         ; Call DOS interrupt to print carriage return
     print_char:                                                                        ; Load the character to DL for printing
-                                      mov   ah, 02h                                    ; DOS function: Print character in DL
                                       int   21h                                        ; Call DOS interrupt to print character
                                       jmp   main_program_loop
 
