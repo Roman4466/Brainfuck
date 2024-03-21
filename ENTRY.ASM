@@ -3,7 +3,7 @@
     program db 10001 dup(?)
     memory  dw 10002 dup(?)
 .code
-                                      org  100h
+                                      org   100h
 
     start:                            
 
@@ -11,132 +11,131 @@
     ; mov ax, @data
     ; mov ds, ax
 
-                                      mov  bl, ds:[80h]
-                                      add  bx, 81h
-                                      mov  byte ptr ds:[bx], 0
+                                      mov   bl, ds:[80h]
+                                      add   bx, 81h
+                                      mov   byte ptr ds:[bx], 0
 
-                                      mov  ah, 3dh                                    ; syscall open file
-                                      mov  dx, 82h                                    ; address at which command line is stored
-                                      int  21h
-                                      mov  bx, ax
- 
-                                      mov  ah, 3fh                                    ; syscall read file
-                                      mov  cx, 10001                                  ; bytes to read
-                                      lea  dx, program                                ; to read into code_buffer
-                                      int  21h
-                                      mov  cx, ax
-                                      xor  bx, bx
+                                      mov   ah, 3dh                                    ; syscall open file
+                                      mov   dx, 82h                                    ; address at which command line is stored
+                                      int   21h
+                                      mov   bx, ax
+                                      mov   ah, 3fh                                    ; syscall read file
+                                      mov   cx, 10001                                  ; bytes to read
+                                      lea   dx, program                                ; to read into code_buffer
+                                      int   21h
+                                      mov   cx, 20000
+                                      xor   bx, bx
     init_data_buffer_loop:            
-                                      mov  byte ptr [memory + bx], 0
-                                      inc  bx
-                                      cmp  bx, 20000
-                                      jnz  short init_data_buffer_loop
-                                      lea  di, memory
-                                      add  di, 2
-                                      lea si, program
-                                      add cx, si
-                                      jmp  short main_program_loop
+                                      mov   byte ptr [memory + bx], 0
+                                      inc   bx
+                                      loop  init_data_buffer_loop
+                                      lea   di, memory
+                                      add   di, 2
+                                      lea   si, program
+                                      mov   cx, ax
+                                      add   cx, si
+                                      jmp   short main_program_loop
 
     input:                            
-                                      mov  ah, 3Fh
-                                      push cx
-                                      xor  bx, bx                                     ; stdin handle
-                                      mov  cx, 1                                      ; 1 byte to read
-                                      lea  dx, memory                                 ; buffer to read into
-                                      int  21h                                        ; read into buffer
-                                      pop  cx
-                                      cmp  al, 0                                      ; Check if the number of bytes read is 0 (EOF)
-                                      jnz  short char_read                            ; If not EOF, continue as before
-                                      mov  word ptr [di], 0FFFFh                      ; Set the buffer element at DI to -1 (0xFFFF)
-                                      jmp  short main_program_loop
+                                      mov   ah, 3Fh
+                                      push  cx
+                                      xor   bx, bx                                     ; stdin handle
+                                      mov   cx, 1                                      ; 1 byte to read
+                                      lea   dx, memory                                 ; buffer to read into
+                                      int   21h                                        ; read into buffer
+                                      pop   cx
+                                      cmp   al, 0                                      ; Check if the number of bytes read is 0 (EOF)
+                                      jnz   short char_read                            ; If not EOF, continue as before
+                                      mov   word ptr [di], 0FFFFh                      ; Set the buffer element at DI to -1 (0xFFFF)
+                                      jmp   short main_program_loop
 
     char_read:                        
-                                      mov  ax, [memory]
-                                      cmp  al, 0Dh
-                                      jz   input                                      ; load the read byte into al
-                                      mov  word ptr [di], ax                          ; store the byte into the current tape position
+                                      mov   ax, [memory]
+                                      cmp   al, 0Dh
+                                      jz    input                                      ; load the read byte into al
+                                      mov   word ptr [di], ax                          ; store the byte into the current tape position
     main_program_loop:                
-                                      cmp  si, cx
-                                      jae  short exit
+                                      cmp   si, cx
+                                      jae   short exit
                                       lodsb
-                                      cmp  al, '+'
-                                      jz   increment
-                                      cmp  al, '-'
-                                      jz   decrement
-                                      cmp  al, '.'
-                                      jz   output
-                                      cmp  al, ','
-                                      jz   input
-                                      cmp  al, '>'
-                                      jz   shift_right
-                                      cmp  al, '<'
-                                      jz   shift_left
-                                      cmp  al, '['
-                                      jz   begin_loop
-                                      cmp  al, ']'
-                                      jz   end_loop
-                                      jmp  short main_program_loop
+                                      cmp   al, '+'
+                                      jz    increment
+                                      cmp   al, '-'
+                                      jz    decrement
+                                      cmp   al, '.'
+                                      jz    output
+                                      cmp   al, ','
+                                      jz    input
+                                      cmp   al, '>'
+                                      jz    shift_right
+                                      cmp   al, '<'
+                                      jz    shift_left
+                                      cmp   al, '['
+                                      jz    begin_loop
+                                      cmp   al, ']'
+                                      jz    end_loop
+                                      jmp   short main_program_loop
     exit:                             
-                                      int  20h
+                                      int   20h
                                       
     nested_loop_that_shouldnt_perform:
-                                      inc  dx
+                                      inc   dx
     find_end_and_finish:              
                                       lodsb
-                                      cmp  al, '['
-                                      jz   short nested_loop_that_shouldnt_perform
-                                      cmp  al, ']'
-                                      jnz  short  find_end_and_finish
-                                      cmp  dx, 0
-                                      jnz  short end_of_nested_loop
-                                      pop  dx                                         ; pop the pointer to last [
-                                      jmp  short main_program_loop
+                                      cmp   al, '['
+                                      jz    short nested_loop_that_shouldnt_perform
+                                      cmp   al, ']'
+                                      jnz   short  find_end_and_finish
+                                      cmp   dx, 0
+                                      jnz   short end_of_nested_loop
+                                      pop   dx                                         ; pop the pointer to last [
+                                      jmp   short main_program_loop
 
     end_of_nested_loop:               
-                                      dec  dx
-                                      jmp  short find_end_and_finish
+                                      dec   dx
+                                      jmp   short find_end_and_finish
 
 
     increment:                        
-                                      inc  word ptr [di]
-                                      jmp  short main_program_loop
+                                      inc   word ptr [di]
+                                      jmp   short main_program_loop
 
     decrement:                        
-                                      dec  word ptr [di]
-                                      jmp  main_program_loop
+                                      dec   word ptr [di]
+                                      jmp   main_program_loop
 
     begin_loop:                       
-                                      dec  si
-                                      push si
-                                      inc  si
-                                      cmp  word ptr [di], 0
-                                      jnz  main_program_loop
-                                      xor  dx, dx
-                                      jmp  find_end_and_finish
+                                      dec   si
+                                      push  si
+                                      inc   si
+                                      cmp   word ptr [di], 0
+                                      jnz   main_program_loop
+                                      xor   dx, dx
+                                      jmp   find_end_and_finish
 
     output:                           
-                                      mov  dx,  word ptr [di]                         ; Load the next character to print
-                                      cmp  dx, 0Ah                                    ; Check if it's linefeed
-                                      jnz  short print_char
-                                      push dx                                         ; If not, jump to print the character
-                                      mov  dl, 0Dh                                    ; Set DL to carriage return
-                                      mov  ah, 02h                                    ; DOS function: Print character in DL
-                                      int  21h
-                                      pop  dx                                         ; Call DOS interrupt to print carriage return
-    print_char:                                                                       ; Load the character to DL for printing
-                                      mov  ah, 02h                                    ; DOS function: Print character in DL
-                                      int  21h                                        ; Call DOS interrupt to print character
-                                      jmp  main_program_loop
+                                      mov   dx,  word ptr [di]                         ; Load the next character to print
+                                      cmp   dx, 0Ah                                    ; Check if it's linefeed
+                                      jnz   short print_char
+                                      push  dx                                         ; If not, jump to print the character
+                                      mov   dl, 0Dh                                    ; Set DL to carriage return
+                                      mov   ah, 02h                                    ; DOS function: Print character in DL
+                                      int   21h
+                                      pop   dx                                         ; Call DOS interrupt to print carriage return
+    print_char:                                                                        ; Load the character to DL for printing
+                                      mov   ah, 02h                                    ; DOS function: Print character in DL
+                                      int   21h                                        ; Call DOS interrupt to print character
+                                      jmp   main_program_loop
 
     shift_left:                       
-                                      sub  di, 2
-                                      jmp  main_program_loop
+                                      sub   di, 2
+                                      jmp   main_program_loop
 
     shift_right:                      
-                                      add  di, 2
-                                      jmp  main_program_loop
+                                      add   di, 2
+                                      jmp   main_program_loop
     
     end_loop:                         
-                                      pop  si
-                                      jmp  main_program_loop
+                                      pop   si
+                                      jmp   main_program_loop
 end start
