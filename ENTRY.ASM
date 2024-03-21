@@ -24,9 +24,9 @@
                                       lea   dx, program                                ; to read into code_buffer
                                       int   21h
                                       mov   cx, 20000
-                                      xor   bx, bx
+                                      lea bx, memory
     init_data_buffer_loop:            
-                                      mov   byte ptr [memory + bx], 0
+                                      mov   byte ptr [bx], 0
                                       inc   bx
                                       loop  init_data_buffer_loop
                                       lea   di, memory
