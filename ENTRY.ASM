@@ -66,8 +66,11 @@
                                       cmp   al, '['
                                       jz    begin_loop
                                       cmp   al, ']'
-                                      jz    end_loop
-                                      jmp   short main_program_loop
+                                      jnz    short main_program_loop                    
+                                      jmp   short end_loop                                   
+    end_loop:                         
+                                      pop   si
+                                      jmp   main_program_loop
     exit:                             
                                       int   20h
                                       
@@ -117,14 +120,10 @@
                                       jmp   main_program_loop
 
     shift_left:                       
-                                      sub   di, 2
-                                      jmp   main_program_loop
+                                      sub   di, 4
+                                      jmp  short shift_right
 
     shift_right:                      
                                       add   di, 2
-                                      jmp   main_program_loop
-    
-    end_loop:                         
-                                      pop   si
                                       jmp   main_program_loop
 end start
