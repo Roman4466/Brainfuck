@@ -106,14 +106,14 @@
 
     output:                           
                                       mov   dx,  word ptr [di]
-                                      mov   ah, 02h                                    ; DOS function: Print character in DL
-                                      cmp   dx, 0Ah                                    ; Check if it's linefeed
+                                      mov   ah, 02h                                
+                                      cmp   dx, 0Ah                                   
                                       jnz   short print_char
-                                      mov   dl, 0Dh                                    ; Set DL to carriage return
+                                      mov   dl, 0Dh                                  
                                       int   21h
-                                      mov   dl, 0Ah                                    ; Set DL to carriage return
-    print_char:                                                                        ; Load the character to DL for printing
-                                      int   21h                                        ; Call DOS interrupt to print character
+                                      mov   dl, 0Ah                                   
+    print_char:                                                                        
+                                      int   21h                                      
                                       jmp   main_program_loop
 
     shift_left:                       
