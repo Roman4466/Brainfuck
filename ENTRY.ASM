@@ -2,7 +2,7 @@
 .data
     program db 10001 dup(?)
     memory  dw 10002 dup(?)
-    suck dw ?
+    suck    dw ?
 .code
                                       org   100h
     start:                            
@@ -34,11 +34,11 @@
                                       mov   ah, 3Fh
                                       xor   bx, bx                                     ; stdin handle
                                       mov   cx, 1                                      ; 1 byte to read
-                                      lea   dx, suck                                 ; buffer to read into
+                                      lea   dx, suck                                   ; buffer to read into
                                       int   21h                                        ; read into buffer
                                       cmp   al, 0                                      ; Check if the number of bytes read is 0 (EOF)
                                       jnz   short char_read                            ; If not EOF, continue as before
-                                      mov   ax, 0FFFFh                      ; Set the buffer element at DI to -1 (0xFFFF)
+                                      mov   ax, 0FFFFh                                 ; Set the buffer element at DI to -1 (0xFFFF)
                                       jmp   short set_char_in_memory
 
     char_read:                        
@@ -89,8 +89,7 @@
                                       jmp   short find_end_and_finish
 
     increment:                        
-                                      inc   word ptr [di]
-                                      jmp   short main_program_loop
+                                      add   word ptr [di], 2
 
     decrement:                        
                                       dec   word ptr [di]
