@@ -34,10 +34,10 @@
                                       mov   ah, 3Fh
                                       xor   bx, bx                                     ; stdin handle
                                       mov   cx, 1                                      ; 1 byte to read
-                                      lea   dx, suck                                   ; buffer to read into
-                                      int   21h                                        ; read into buffer
+                                      lea   dx, suck                                
+                                      int   21h                                       
                                       cmp   al, 0                                      ; Check if the number of bytes read is 0 (EOF)
-                                      jnz   short char_read                            ; If not EOF, continue as before
+                                      jnz   short char_read                            ; If not EOF,  output char
                                       mov   ax, 0FFFFh                                 ; Set the buffer element at DI to -1 (0xFFFF)
                                       jmp   short set_char_in_memory
 
