@@ -11,12 +11,12 @@
                                       mov   byte ptr ds:[bx], 0
 
                                       mov   ah, 3dh                                    ; syscall open file
-                                      mov   dx, 82h                                    ; address at which command line is stored
+                                      mov   dx, 82h                                    ; address at which filename is stored
                                       int   21h
                                       mov   bx, ax
                                       mov   ah, 3fh                                    ; syscall read file
                                       mov   cx, 10001                                  ; bytes to read
-                                      lea   dx, program                                ; to read into code_buffer
+                                      lea   dx, program                                ; to read into зкщпкфь
                                       int   21h
                                       mov   cx, 20000
                                       lea   bx, memory
