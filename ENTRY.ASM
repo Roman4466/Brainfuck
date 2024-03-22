@@ -45,7 +45,7 @@
                                       mov   ax, [suck]
                                       cmp   al, 0Dh
                                       jz    input
-    set_char_in_memory:                                                                ; load the read byte into al
+    set_char_in_memory:                                                                
                                       mov   word ptr [di], ax                          ; store the byte into the current tape position
     main_program_loop:                
                                       cmp   si, BP
