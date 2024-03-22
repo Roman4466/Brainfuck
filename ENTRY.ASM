@@ -10,13 +10,13 @@
                                       add   bx, 81h
                                       mov   byte ptr ds:[bx], 0
 
-                                      mov   ah, 3dh                                    ; syscall open file
-                                      mov   dx, 82h                                    ; address at which command line is stored
+                                      mov   ah, 3dh                                    ; function open file
+                                      mov   dx, 82h                                    ; address at which filename is stored
                                       int   21h
                                       mov   bx, ax
-                                      mov   ah, 3fh                                    ; syscall read file
+                                      mov   ah, 3fh                                    ; function read file
                                       mov   cx, 10001                                  ; bytes to read
-                                      lea   dx, program                                ; to read into code_buffer
+                                      lea   dx, program                                ; to read into program
                                       int   21h
                                       mov   cx, 20000
                                       lea   bx, memory
@@ -34,10 +34,10 @@
                                       mov   ah, 3Fh
                                       xor   bx, bx                                     ; stdin handle
                                       mov   cx, 1                                      ; 1 byte to read
-                                      lea   dx, suck                                   ; buffer to read into
-                                      int   21h                                        ; read into buffer
+                                      lea   dx, suck                                
+                                      int   21h                                       
                                       cmp   al, 0                                      ; Check if the number of bytes read is 0 (EOF)
-                                      jnz   short char_read                            ; If not EOF, continue as before
+                                      jnz   short char_read                            ; If not EOF,  output char
                                       mov   ax, 0FFFFh                                 ; Set the buffer element at DI to -1 (0xFFFF)
                                       jmp   short set_char_in_memory
 
@@ -45,7 +45,7 @@
                                       mov   ax, [suck]
                                       cmp   al, 0Dh
                                       jz    input
-    set_char_in_memory:                                                                ; load the read byte into al
+    set_char_in_memory:                                                                
                                       mov   word ptr [di], ax                          ; store the byte into the current tape position
     main_program_loop:                
                                       cmp   si, BP
@@ -66,11 +66,8 @@
                                       cmp   al, '['
                                       jz    begin_loop
                                       cmp   al, ']'
-                                      jnz    short main_program_loop                    
-                                      jmp   short end_loop                                   
-    end_loop:                         
-                                      pop   si
-                                      jmp   main_program_loop
+                                      jz    end_loop
+                                      jmp   short main_program_loop
     exit:                             
                                       int   20h
                                       
@@ -109,21 +106,25 @@
 
     output:                           
                                       mov   dx,  word ptr [di]
-                                      mov   ah, 02h                                    ; DOS function: Print character in DL
-                                      cmp   dx, 0Ah                                    ; Check if it's linefeed
+                                      mov   ah, 02h                                
+                                      cmp   dx, 0Ah                                   
                                       jnz   short print_char
-                                      mov   dl, 0Dh                                    ; Set DL to carriage return
+                                      mov   dl, 0Dh                                  
                                       int   21h
-                                      mov   dl, 0Ah                                    ; Set DL to carriage return
-    print_char:                                                                        ; Load the character to DL for printing
-                                      int   21h                                        ; Call DOS interrupt to print character
+                                      mov   dl, 0Ah                                   
+    print_char:                                                                        
+                                      int   21h                                      
                                       jmp   main_program_loop
 
     shift_left:                       
-                                      sub   di, 4
-                                      jmp  short shift_right
+                                      sub   di, 2
+                                      jmp   main_program_loop
 
     shift_right:                      
                                       add   di, 2
+                                      jmp   main_program_loop
+    
+    end_loop:                         
+                                      pop   si
                                       jmp   main_program_loop
 end start
