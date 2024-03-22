@@ -10,13 +10,13 @@
                                       add   bx, 81h
                                       mov   byte ptr ds:[bx], 0
 
-                                      mov   ah, 3dh                                    ; syscall open file
+                                      mov   ah, 3dh                                    ; function open file
                                       mov   dx, 82h                                    ; address at which filename is stored
                                       int   21h
                                       mov   bx, ax
-                                      mov   ah, 3fh                                    ; syscall read file
+                                      mov   ah, 3fh                                    ; function read file
                                       mov   cx, 10001                                  ; bytes to read
-                                      lea   dx, program                                ; to read into зкщпкфь
+                                      lea   dx, program                                ; to read into program
                                       int   21h
                                       mov   cx, 20000
                                       lea   bx, memory
